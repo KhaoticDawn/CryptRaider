@@ -18,14 +18,29 @@ void UTriggerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (GetKeyTag() != nullptr)
+	AActor* Actor = GetKeyTag();
+
+	if (Actor != nullptr)
 	{
-		UE_LOG(LogTemp, Display, TEXT("Unlocked"));
+		UPrimitiveComponent* Component = Cast<UPrimitiveComponent>(Actor->GetRootComponent());
+		if (Component != nullptr)
+		{
+			Component->SetSimulatePhysics(false);
+		}
+
+		Actor->AttachToComponent(this, FAttachmentTransformRules::KeepWorldTransform);
+		Mover->SetShouldMove(true);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Display, TEXT("Relocking"));
+		Mover->SetShouldMove(false);
 	}
+
+}
+
+void UTriggerComponent::SetMover(UMover* NewMover)
+{
+	Mover = NewMover;
 }
 
 AActor* UTriggerComponent::GetKeyTag() const
@@ -36,7 +51,7 @@ AActor* UTriggerComponent::GetKeyTag() const
 
 	for (AActor* Actor : Actors)
 	{
-		if (Actor->ActorHasTag(KeyTag))
+		if (Actor->ActorHasTag(KeyTag) && !Actor->ActorHasTag("Grabbed"))
 		{
 			return Actor;
 		}
